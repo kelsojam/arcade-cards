@@ -15,7 +15,7 @@ namespace ImageProp {
  * 
  * TODO:
  * 
- * - [ ] Define a card
+ * - [x] Define a card
  * 
  *    - Art
  * 
@@ -25,15 +25,34 @@ namespace ImageProp {
  * 
  *    - Description (TODO: extension for word wrap)
  * 
- * - [ ] Render a card
+ * - [x] Render a card
  * 
- * - [ ] Render a hand
+ * - [x] Render a hand
  * 
  * - [ ] Traverse a hand
  * 
  * - [ ] Playing a card
+ * 
+ * - [ ] Render a pile of cards
+ * 
+ * - [ ] Text wrapping (probably needs an extension)
+ * 
+ * Extensions used:
+ * 
+ * =============
+ * 
+ * jwunderl/pxt-scaling
+ * 
+ * microsoft/arcade-text
+ * 
+ * microsoft/arcade-block-objects
+ * 
+ * jwunderl/arcade-sprite-utils
  */
-function renderFullCard (cardId: number, target: Image) {
+function setCardHighlight (cardSprite: Sprite, highlight: boolean) {
+    cardSprite.setImage(renderSmallCard(sprites.readDataNumber(cardSprite, "id"), sprites.readDataNumber(cardSprite, "rot"), highlight))
+}
+function renderFullCard (cardId: number, target: Image, highlighted: boolean) {
     cardDef = cardDefinitions[cardId]
     target.fill(12)
     target.drawRect(0, 0, 64, 90, 11)
@@ -46,6 +65,9 @@ function renderFullCard (cardId: number, target: Image) {
     target.setPixel(2, 87, 11)
     target.setPixel(61, 87, 11)
     target.setPixel(61, 2, 11)
+    if (highlighted) {
+        target.replace(11, 5)
+    }
     spriteutils.drawTransparentImage(blockObject.getImageProperty(cardDef, ImageProp.art), target, 8, 14)
     titleSprite = textsprite.create(blockObject.getStringProperty(cardDef, StrProp.title), 0, 1)
     titleLeftPad = (64 - titleSprite.width) / 2
@@ -62,10 +84,32 @@ function createBlankSmallCardImg () {
 function createBlankFullCardImg () {
     return image.create(64, 90)
 }
-function renderSmallCard (cardId: number, target: Image) {
+function renderSmallCard (cardId: number, rotation: number, highlighted: boolean) {
     fullImg = createBlankFullCardImg()
-    renderFullCard(cardId, fullImg)
-    spriteutils.drawTransparentImage(scaling.scaleHalfX(fullImg), target, 0, 0)
+    renderFullCard(cardId, fullImg, highlighted)
+    diag = Math.sqrt(32 ** 2 + 45 ** 2)
+    return scaling.rot(scaling.scaleHalfX(fullImg), rotation, (diag - 32) / 2)
+}
+controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
+    setCardHighlight(handSprites[currentCardIdx], false)
+    currentCardIdx += 1
+    setCardHighlight(handSprites[currentCardIdx], true)
+})
+function createHand () {
+    handGap = scene.screenWidth() / (hand.length + 1)
+    totalRot = 45
+    eaRot = totalRot / (hand.length + 1)
+    handSprites = []
+    for (let arrayIndex = 0; arrayIndex <= hand.length - 1; arrayIndex++) {
+        cardId = hand[arrayIndex]
+        rot = arrayIndex * eaRot - totalRot / 2
+        mySmallCard = sprites.create(renderSmallCard(cardId, rot, false), SpriteKind.Card)
+        mySmallCard.x = Math.cos(spriteutils.degreesToRadians(Math.map(arrayIndex, 0, hand.length - 1, 180, 360))) * 48 + scene.screenWidth() / 2
+        mySmallCard.y = Math.sin(spriteutils.degreesToRadians(Math.map(arrayIndex, 0, hand.length - 1, 180, 360))) * 24 + scene.screenHeight()
+        sprites.setDataNumber(mySmallCard, "id", cardId)
+        sprites.setDataNumber(mySmallCard, "rot", rot)
+        handSprites.push(mySmallCard)
+    }
 }
 function defineCard (title: string, art: Image, description: string) {
     card = blockObject.create()
@@ -74,14 +118,27 @@ function defineCard (title: string, art: Image, description: string) {
     blockObject.setStringProperty(card, StrProp.description, description)
     cardDefinitions.push(card)
 }
+/**
+ * circle x = cos(a) * r + origin_x
+ * 
+ * circle y = sin(a) * r + origin_y
+ */
 let card: blockObject.BlockObject = null
+let mySmallCard: Sprite = null
+let rot = 0
+let cardId = 0
+let eaRot = 0
+let totalRot = 0
+let handGap = 0
+let diag = 0
 let fullImg: Image = null
 let descriptionSprite: TextSprite = null
 let titleLeftPad = 0
 let titleSprite: TextSprite = null
 let cardDef: blockObject.BlockObject = null
-let mySmallCard: Sprite = null
-let cardId = 0
+let handSprites: Sprite[] = []
+let currentCardIdx = 0
+let hand: number[] = []
 let cardDefinitions: blockObject.BlockObject[] = []
 cardDefinitions = []
 defineCard("Erasthmus", img`
@@ -186,14 +243,18 @@ defineCard("Hat Horder", img`
     6666616666666666666666eec6eec6666666666666666666
     666666666666666666666eecc6eeec666666666666666666
     `, "Hold onto your hats! Hat Horder is coming...")
-let hand = [0, 1, 2]
-for (let arrayIndex = 0; arrayIndex <= hand.length - 1; arrayIndex++) {
-    cardId = hand[arrayIndex]
-    mySmallCard = sprites.create(createBlankSmallCardImg(), SpriteKind.Card)
-    renderSmallCard(cardId, mySmallCard.image)
-    mySmallCard.left = arrayIndex * (mySmallCard.width + 4) + 4
-}
-let myLargeCard = sprites.create(createBlankFullCardImg(), SpriteKind.Player)
-controller.moveSprite(myLargeCard)
-renderFullCard(0, myLargeCard.image)
-myLargeCard.left = 0
+hand = [
+2,
+0,
+1,
+0,
+0,
+0,
+0,
+0,
+0,
+0
+]
+createHand()
+currentCardIdx = 0
+setCardHighlight(handSprites[currentCardIdx], true)
