@@ -8,47 +8,6 @@ namespace StrProp {
 namespace ImageProp {
     export const art = ImageProp.create()
 }
-/**
- * Cards!
- * 
- * Inspiration: Slay the Spire, MtG, 
- * 
- * TODO:
- * 
- * - [x] Define a card
- * 
- *    - Art
- * 
- *    - Name / title
- * 
- *    - stats (TBD)
- * 
- *    - Description (TODO: extension for word wrap)
- * 
- * - [x] Render a card
- * 
- * - [x] Render a hand
- * 
- * - [ ] Traverse a hand
- * 
- * - [ ] Playing a card
- * 
- * - [ ] Render a pile of cards
- * 
- * - [ ] Text wrapping (probably needs an extension)
- * 
- * Extensions used:
- * 
- * =============
- * 
- * jwunderl/pxt-scaling
- * 
- * microsoft/arcade-text
- * 
- * microsoft/arcade-block-objects
- * 
- * jwunderl/arcade-sprite-utils
- */
 function setCardHighlight (cardSprite: Sprite, highlight: boolean) {
     cardSprite.setImage(renderSmallCard(sprites.readDataNumber(cardSprite, "id"), sprites.readDataNumber(cardSprite, "rot"), highlight))
 }
@@ -118,6 +77,47 @@ function defineCard (title: string, art: Image, description: string) {
     blockObject.setStringProperty(card, StrProp.description, description)
     cardDefinitions.push(card)
 }
+/**
+ * Cards!
+ * 
+ * Inspiration: Slay the Spire, MtG, 
+ * 
+ * TODO:
+ * 
+ * - [x] Define a card
+ * 
+ *    - Art
+ * 
+ *    - Name / title
+ * 
+ *    - stats (TBD)
+ * 
+ *    - Description (TODO: extension for word wrap)
+ * 
+ * - [x] Render a card
+ * 
+ * - [x] Render a hand
+ * 
+ * - [ ] Traverse a hand
+ * 
+ * - [ ] Playing a card
+ * 
+ * - [ ] Render a pile of cards
+ * 
+ * - [ ] Text wrapping (probably needs an extension)
+ * 
+ * Extensions used:
+ * 
+ * =============
+ * 
+ * jwunderl/pxt-scaling
+ * 
+ * microsoft/arcade-text
+ * 
+ * microsoft/arcade-block-objects
+ * 
+ * jwunderl/arcade-sprite-utils
+ */
 /**
  * circle x = cos(a) * r + origin_x
  * 
@@ -243,18 +243,10 @@ defineCard("Hat Horder", img`
     6666616666666666666666eec6eec6666666666666666666
     666666666666666666666eecc6eeec666666666666666666
     `, "Hold onto your hats! Hat Horder is coming...")
-hand = [
-2,
-0,
-1,
-0,
-0,
-0,
-0,
-0,
-0,
-0
-]
+hand = []
+for (let index = 0; index < 7; index++) {
+    hand.push(randint(0, cardDefinitions.length - 1))
+}
 createHand()
 currentCardIdx = 0
 setCardHighlight(handSprites[currentCardIdx], true)
