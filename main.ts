@@ -8,75 +8,6 @@ namespace StrProp {
 namespace ImageProp {
     export const art = ImageProp.create()
 }
-function setCardHighlight (cardSprite: Sprite, highlight: boolean) {
-    cardSprite.setImage(renderSmallCard(sprites.readDataNumber(cardSprite, "id"), sprites.readDataNumber(cardSprite, "rot"), highlight))
-}
-function renderFullCard (cardId: number, target: Image, highlighted: boolean) {
-    cardDef = cardDefinitions[cardId]
-    target.fill(12)
-    target.drawRect(0, 0, 64, 90, 11)
-    target.drawRect(1, 1, 62, 88, 11)
-    target.setPixel(0, 0, 0)
-    target.setPixel(0, 89, 0)
-    target.setPixel(63, 89, 0)
-    target.setPixel(63, 0, 0)
-    target.setPixel(2, 2, 11)
-    target.setPixel(2, 87, 11)
-    target.setPixel(61, 87, 11)
-    target.setPixel(61, 2, 11)
-    if (highlighted) {
-        target.replace(11, 5)
-    }
-    spriteutils.drawTransparentImage(blockObject.getImageProperty(cardDef, ImageProp.art), target, 8, 14)
-    titleSprite = textsprite.create(blockObject.getStringProperty(cardDef, StrProp.title), 0, 1)
-    titleLeftPad = (64 - titleSprite.width) / 2
-    spriteutils.drawTransparentImage(titleSprite.image, target, titleLeftPad, 3)
-    titleSprite.destroy()
-    descriptionSprite = textsprite.create(blockObject.getStringProperty(cardDef, StrProp.description), 0, 1)
-    descriptionSprite.setMaxFontHeight(5)
-    spriteutils.drawTransparentImage(descriptionSprite.image, target, 3, 50)
-    descriptionSprite.destroy()
-}
-function createBlankSmallCardImg () {
-    return image.create(32, 45)
-}
-function createBlankFullCardImg () {
-    return image.create(64, 90)
-}
-function renderSmallCard (cardId: number, rotation: number, highlighted: boolean) {
-    fullImg = createBlankFullCardImg()
-    renderFullCard(cardId, fullImg, highlighted)
-    diag = Math.sqrt(32 ** 2 + 45 ** 2)
-    return scaling.rot(scaling.scaleHalfX(fullImg), rotation, (diag - 32) / 2)
-}
-controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
-    setCardHighlight(handSprites[currentCardIdx], false)
-    currentCardIdx += 1
-    setCardHighlight(handSprites[currentCardIdx], true)
-})
-function createHand () {
-    handGap = scene.screenWidth() / (hand.length + 1)
-    totalRot = 45
-    eaRot = totalRot / (hand.length + 1)
-    handSprites = []
-    for (let arrayIndex = 0; arrayIndex <= hand.length - 1; arrayIndex++) {
-        cardId = hand[arrayIndex]
-        rot = arrayIndex * eaRot - totalRot / 2
-        mySmallCard = sprites.create(renderSmallCard(cardId, rot, false), SpriteKind.Card)
-        mySmallCard.x = Math.cos(spriteutils.degreesToRadians(Math.map(arrayIndex, 0, hand.length - 1, 180, 360))) * 48 + scene.screenWidth() / 2
-        mySmallCard.y = Math.sin(spriteutils.degreesToRadians(Math.map(arrayIndex, 0, hand.length - 1, 180, 360))) * 24 + scene.screenHeight()
-        sprites.setDataNumber(mySmallCard, "id", cardId)
-        sprites.setDataNumber(mySmallCard, "rot", rot)
-        handSprites.push(mySmallCard)
-    }
-}
-function defineCard (title: string, art: Image, description: string) {
-    card = blockObject.create()
-    blockObject.setStringProperty(card, StrProp.title, title)
-    blockObject.setImageProperty(card, ImageProp.art, art)
-    blockObject.setStringProperty(card, StrProp.description, description)
-    cardDefinitions.push(card)
-}
 /**
  * Cards!
  * 
@@ -123,6 +54,84 @@ function defineCard (title: string, art: Image, description: string) {
  * 
  * circle y = sin(a) * r + origin_y
  */
+function setCardHighlight (cardSprite: Sprite, highlight: boolean) {
+    cardSprite.setImage(renderSmallCard(sprites.readDataNumber(cardSprite, "id"), sprites.readDataNumber(cardSprite, "rot"), highlight))
+}
+function renderFullCard (cardId: number, target: Image, highlighted: boolean) {
+    cardDef = cardDefinitions[cardId]
+    target.fill(12)
+    target.drawRect(0, 0, 64, 90, 11)
+    target.drawRect(1, 1, 62, 88, 11)
+    target.setPixel(0, 0, 0)
+    target.setPixel(0, 89, 0)
+    target.setPixel(63, 89, 0)
+    target.setPixel(63, 0, 0)
+    target.setPixel(2, 2, 11)
+    target.setPixel(2, 87, 11)
+    target.setPixel(61, 87, 11)
+    target.setPixel(61, 2, 11)
+    if (highlighted) {
+        target.replace(11, 5)
+    }
+    spriteutils.drawTransparentImage(blockObject.getImageProperty(cardDef, ImageProp.art), target, 8, 14)
+    titleSprite = textsprite.create(blockObject.getStringProperty(cardDef, StrProp.title), 0, 1)
+    titleLeftPad = (64 - titleSprite.width) / 2
+    spriteutils.drawTransparentImage(titleSprite.image, target, titleLeftPad, 3)
+    titleSprite.destroy()
+    descriptionSprite = textsprite.create(blockObject.getStringProperty(cardDef, StrProp.description), 0, 1)
+    descriptionSprite.setMaxFontHeight(5)
+    spriteutils.drawTransparentImage(descriptionSprite.image, target, 3, 50)
+    descriptionSprite.destroy()
+}
+function createBlankSmallCardImg () {
+    return image.create(32, 45)
+}
+function createBlankFullCardImg () {
+    return image.create(64, 90)
+}
+controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (currentCardIdx > 0) {
+        setCardHighlight(handSprites[currentCardIdx], false)
+        currentCardIdx += -1
+        setCardHighlight(handSprites[currentCardIdx], true)
+    }
+})
+function renderSmallCard (cardId: number, rotation: number, highlighted: boolean) {
+    fullImg = createBlankFullCardImg()
+    renderFullCard(cardId, fullImg, highlighted)
+    diag = Math.sqrt(32 ** 2 + 45 ** 2)
+    return scaling.rot(scaling.scaleHalfX(fullImg), rotation, (diag - 32) / 2)
+}
+controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (currentCardIdx < handSprites.length - 1) {
+        setCardHighlight(handSprites[currentCardIdx], false)
+        currentCardIdx += 1
+        setCardHighlight(handSprites[currentCardIdx], true)
+    }
+})
+function createHand () {
+    handGap = scene.screenWidth() / (hand.length + 1)
+    totalRot = 45
+    eaRot = totalRot / (hand.length + 1)
+    handSprites = []
+    for (let arrayIndex = 0; arrayIndex <= hand.length - 1; arrayIndex++) {
+        cardId = hand[arrayIndex]
+        rot = arrayIndex * eaRot - totalRot / 2
+        mySmallCard = sprites.create(renderSmallCard(cardId, rot, false), SpriteKind.Card)
+        mySmallCard.x = Math.cos(spriteutils.degreesToRadians(Math.map(arrayIndex, 0, hand.length - 1, 180, 360))) * 48 + scene.screenWidth() / 2
+        mySmallCard.y = Math.sin(spriteutils.degreesToRadians(Math.map(arrayIndex, 0, hand.length - 1, 180, 360))) * 24 + scene.screenHeight()
+        sprites.setDataNumber(mySmallCard, "id", cardId)
+        sprites.setDataNumber(mySmallCard, "rot", rot)
+        handSprites.push(mySmallCard)
+    }
+}
+function defineCard (title: string, art: Image, description: string) {
+    card = blockObject.create()
+    blockObject.setStringProperty(card, StrProp.title, title)
+    blockObject.setImageProperty(card, ImageProp.art, art)
+    blockObject.setStringProperty(card, StrProp.description, description)
+    cardDefinitions.push(card)
+}
 let card: blockObject.BlockObject = null
 let mySmallCard: Sprite = null
 let rot = 0
